@@ -6,6 +6,7 @@
 
 import { v4 as uuidv4 } from "uuid";
 import { insertTransaction } from "./bigQueryService.js";
+import bigQueryConfig from "../config/bigquery.js";
 
 // Constantes de configuración
 const CATEGORIES = ["Electronics", "Clothing", "Home", "Books"];
@@ -28,7 +29,7 @@ const PRICE_RANGES = {
 // Intervalos configurables (ms)
 const MIN_INTERVAL = parseInt(process.env.SIMULATOR_MIN_INTERVAL_MS) || 2000;
 const MAX_INTERVAL = parseInt(process.env.SIMULATOR_MAX_INTERVAL_MS) || 5000;
-const BATCH_SIZE = 5; // Enviar a BigQuery cada 5 transacciones
+// BATCH_SIZE ahora se lee desde config/bigquery.js
 let transactionBuffer = [];
 
 // Estado del simulador
@@ -148,7 +149,7 @@ export const startSimulator = (io) => {
     // Acumulamos en buffer para enviar en lotes y ahorrar cuota
     transactionBuffer.push(transaction);
 
-    if (transactionBuffer.length >= BATCH_SIZE) {
+    if (transactionBuffer.length >= bigQueryConfig.batchSize) {
       const batch = [...transactionBuffer];
       transactionBuffer = []; // Limpiamos buffer
 

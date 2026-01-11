@@ -28,7 +28,7 @@
           <div class="tx-info">
             <span class="tx-category">{{ tx.category }}</span>
             <span class="tx-meta"
-              >{{ tx.region }} • {{ formatTime(tx.timestamp) }}</span
+              >{{ tx.region }} • {{ formatRelativeTime(tx.timestamp) }}</span
             >
           </div>
           <span class="tx-amount positive">+${{ tx.amount.toFixed(2) }}</span>
@@ -66,6 +66,8 @@ import {
   Package,
 } from "lucide-vue-next";
 
+import { formatRelativeTime } from "../utils/formatters";
+
 const props = defineProps({
   transactions: { type: Array, default: () => [] },
   lastMinuteSales: { type: Number, default: 0 },
@@ -89,13 +91,6 @@ const categoryIcons = {
 
 const getCategoryColor = (cat) => categoryColors[cat] || "#3b82f6";
 const getCategoryIcon = (cat) => categoryIcons[cat] || Package;
-
-const formatTime = (timestamp) => {
-  const diff = Math.floor((Date.now() - new Date(timestamp)) / 1000);
-  if (diff < 5) return "Just now";
-  if (diff < 60) return `${diff}s ago`;
-  return `${Math.floor(diff / 60)}m ago`;
-};
 </script>
 
 <style scoped>

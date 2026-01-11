@@ -20,6 +20,7 @@ export const bigQueryConfig = {
   tables: {
     salesTransactions: "sales_transactions",
   },
+  batchSize: parseInt(process.env.BIGQUERY_BATCH_SIZE) || 5,
 };
 
 /**

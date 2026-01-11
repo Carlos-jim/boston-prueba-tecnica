@@ -46,7 +46,7 @@
               }"
             ></div>
           </div>
-          <span class="bar-value">${{ formatShort(day.predictedSales) }}</span>
+          <span class="bar-value">${{ formatShortNumber(day.predictedSales) }}</span>
         </div>
       </div>
     </div>
@@ -61,6 +61,8 @@
 <script setup>
 import { computed } from "vue";
 import { Target, Clock } from "lucide-vue-next";
+
+import { formatNumber, formatShortNumber, formatDay, formatUpdateTime } from "../utils/formatters";
 
 const props = defineProps({
   predictions: { type: Array, default: () => [] },
@@ -82,36 +84,6 @@ const upperBound = computed(() =>
 const maxValue = computed(() =>
   Math.max(...props.predictions.map((d) => d.predictedSales))
 );
-
-const formatNumber = (num) => {
-  if (num >= 1000000) return (num / 1000000).toFixed(2) + "M";
-  if (num >= 1000) return (num / 1000).toFixed(1) + "K";
-  return num.toFixed(0);
-};
-
-const formatShort = (num) => {
-  if (num >= 1000) return (num / 1000).toFixed(1) + "K";
-  return num.toFixed(0);
-};
-
-const formatDay = (dateStr) => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-};
-
-const formatUpdateTime = (dateStr) => {
-  if (!dateStr) return "N/A";
-  return new Date(dateStr).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
 
 const getBarWidth = (val) =>
   maxValue.value ? `${(val / maxValue.value) * 100}%` : "0%";
