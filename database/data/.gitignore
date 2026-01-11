@@ -1,0 +1,7 @@
+# Archivos de datos generados
+# Estos archivos son output del script generate-dataset.js
+# No se suben al repositorio por su tamaño
+
+*.json
+*.ndjson
+!.gitkeep

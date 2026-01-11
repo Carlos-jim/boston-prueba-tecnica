@@ -1,0 +1,36 @@
+{
+  "name": "ecommerce-dashboard-backend",
+  "version": "1.0.0",
+  "description": "Backend API para dashboard de e-commerce con WebSockets y BigQuery",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "lint": "eslint src/",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "dependencies": {
+    "@google-cloud/bigquery": "^8.1.1",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "dotenv": "^16.3.1"
+  },
+  "keywords": [
+    "ecommerce",
+    "dashboard",
+    "bigquery",
+    "websockets",
+    "real-time",
+    "analytics"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
