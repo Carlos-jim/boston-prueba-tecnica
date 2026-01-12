@@ -101,6 +101,17 @@ O copia el contenido de `01_schema.sql` directamente en BigQuery Console.
 
 ### Paso 2: Cargar los datos históricos
 
+**Opción A: Script Node.js (Recomendado)**
+
+```bash
+cd backend
+node scripts/loadDataToBigQuery.js
+```
+
+Este script carga los datos en lotes de 500 registros usando el service account configurado.
+
+**Opción B: BigQuery CLI** (requiere [Google Cloud SDK](https://cloud.google.com/sdk/docs/install))
+
 ```bash
 bq load --source_format=NEWLINE_DELIMITED_JSON \
   ecommerce_analytics.sales_transactions \
@@ -109,10 +120,20 @@ bq load --source_format=NEWLINE_DELIMITED_JSON \
 
 ### Paso 3: Crear y entrenar el modelo ML (ARIMA_PLUS)
 
-Ejecuta el script de BigQuery ML:
+**Opción A: Script Node.js (Recomendado)**
 
 ```bash
-bq query --use_legacy_sql=false < database/scripts/02_bqml_model.sql
+cd backend
+node scripts/createBQMLModel.js
+```
+
+Este script crea la vista, entrena el modelo y muestra las predicciones de prueba.
+
+**Opción B: BigQuery CLI** (requiere [Google Cloud SDK](https://cloud.google.com/sdk/docs/install))
+
+```powershell
+# PowerShell
+Get-Content database/scripts/02_bqml_model.sql | bq query --use_legacy_sql=false
 ```
 
 Este script hace lo siguiente:
