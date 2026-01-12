@@ -10,7 +10,9 @@
           v-for="range in timeRanges"
           :key="range.value"
           class="px-3.5 py-1.5 bg-transparent border-none rounded-lg text-xs font-semibold text-gray-500 cursor-pointer transition-all hover:text-gray-800"
-          :class="{ 'bg-white text-blue-600 shadow-sm': selectedRange === range.value }"
+          :class="{
+            'bg-white text-blue-600 shadow-sm': selectedRange === range.value,
+          }"
           @click="changeRange(range.value)"
         >
           {{ range.label }}
@@ -91,7 +93,7 @@ const selectedRange = ref(30);
 onMounted(() => {
   setTimeout(() => {
     shouldAnimate.value = false;
-  }, 2000);
+  }, 800);
 });
 
 // Change range with animation - temporarily enable animation for filter change
@@ -102,7 +104,7 @@ const changeRange = (value) => {
   // Disable animation again after filter animation completes
   setTimeout(() => {
     shouldAnimate.value = false;
-  }, 1800);
+  }, 700);
 };
 
 const filteredData = computed(() => {
@@ -193,17 +195,17 @@ const chartOptions = computed(() => ({
   // Full animation on initial load or filter change, quick updates for real-time data
   animation: shouldAnimate.value
     ? {
-        duration: 1500,
+        duration: 600,
         easing: "easeInOutQuart",
         delay: (context) => {
           let delay = 0;
           if (context.type === "data" && context.mode === "default") {
-            delay = context.dataIndex * 30 + context.datasetIndex * 100;
+            delay = context.dataIndex * 10 + context.datasetIndex * 50;
           }
           return delay;
         },
       }
-    : { duration: 300 }, // Quick smooth updates for real-time data
+    : { duration: 200 }, // Quick smooth updates for real-time data
   transitions: {
     active: {
       animation: {
