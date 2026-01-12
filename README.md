@@ -72,7 +72,10 @@ Para conectar con BigQuery real, crea un archivo `.env` en `/backend`:
 NODE_ENV=production
 GCLOUD_PROJECT_ID=tu-proyecto-gcp
 GCLOUD_KEYFILE_PATH=./path/to/service-account.json
-BIGQUERY_BATCH_SIZE=10
+BIGQUERY_BATCH_SIZE=5
+# Simulador de transacciones
+SIMULATOR_MIN_INTERVAL_MS=2000
+SIMULATOR_MAX_INTERVAL_MS=5000
 ```
 
 > **Nota:** Sin estas variables, el proyecto funciona en modo desarrollo usando datos locales.
