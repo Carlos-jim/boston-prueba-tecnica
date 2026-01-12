@@ -31,40 +31,22 @@ npm install
 ### 3. Instalar dependencias del Frontend
 
 ```bash
-cd ../frontend
+#Nueva terminal
+cd frontend
 npm install
 ```
 
 ### 4. Generar el dataset de prueba
 
 ```bash
-cd ../database/scripts
+#Nueva terminal
+cd database/scripts
 node generate-dataset.js
 ```
 
 Esto generará 12,000 transacciones sintéticas en `database/data/`.
 
-### 5. Ejecutar el Backend
-
-```bash
-cd ../../backend
-npm run dev
-```
-
-El servidor iniciará en `http://localhost:3001`
-
-### 6. Ejecutar el Frontend (en otra terminal)
-
-```bash
-cd frontend
-npm run dev
-```
-
-El dashboard estará disponible en `http://localhost:5173`
-
----
-
-## ⚙️ Variables de Entorno (Opcional)
+## ⚙️ Variables de Entorno
 
 Para conectar con BigQuery real, crea un archivo `.env` en `/backend`:
 
@@ -79,6 +61,27 @@ SIMULATOR_MAX_INTERVAL_MS=5000
 ```
 
 > **Nota:** Sin estas variables, el proyecto funciona en modo desarrollo usando datos locales.
+
+---
+
+### 5. Ejecutar el Backend
+
+```bash
+#Nueva terminal
+cd backend
+npm run dev
+```
+
+El servidor iniciará en `http://localhost:3001`
+
+### 6. Ejecutar el Frontend (en otra terminal)
+
+```bash
+cd frontend
+npm run dev
+```
+
+El dashboard estará disponible en `http://localhost:5173`
 
 ---
 
