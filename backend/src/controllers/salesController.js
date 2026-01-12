@@ -34,7 +34,28 @@ export const getStats = asyncHandler(async (req, res) => {
  * Obtiene ventas agregadas por categoría
  */
 export const getByCategory = asyncHandler(async (req, res) => {
-  const data = await bigQueryService.getSalesByCategory();
+  const { period } = req.query;
+  let startDate = null;
+
+  if (period) {
+    const now = new Date();
+    // Normalize to start of day for consistent filtering
+    now.setHours(0, 0, 0, 0);
+
+    if (period === "today") {
+      startDate = now.toISOString().split("T")[0]; // YYYY-MM-DD
+    } else if (period === "week") {
+      const weekAgo = new Date(now);
+      weekAgo.setDate(now.getDate() - 7);
+      startDate = weekAgo.toISOString().split("T")[0];
+    } else if (period === "month") {
+      const monthAgo = new Date(now);
+      monthAgo.setDate(now.getDate() - 30);
+      startDate = monthAgo.toISOString().split("T")[0];
+    }
+  }
+
+  const data = await bigQueryService.getSalesByCategory(startDate);
   successResponse(res, data);
 });
 

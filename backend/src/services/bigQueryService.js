@@ -51,7 +51,33 @@ export const loadSalesData = () => {
 
   try {
     const rawData = fs.readFileSync(DATA_PATH, "utf-8");
-    salesDataCache = JSON.parse(rawData);
+    let data = JSON.parse(rawData);
+
+    // Shift dates to "now" for realistic dev experience
+    if (data.length > 0) {
+      // Find latest date in dataset
+      const timestamps = data.map((d) => new Date(d.timestamp).getTime());
+      const maxTime = Math.max(...timestamps);
+      const now = Date.now();
+      const diff = now - maxTime;
+
+      // Only shift if latest data is older than 24 hours
+      if (diff > 86400000) {
+        console.log(
+          `🕒 [BigQueryService] Time-shifting data by ${Math.round(
+            diff / 86400000
+          )} days`
+        );
+        data = data.map((d) => ({
+          ...d,
+          timestamp: new Date(
+            new Date(d.timestamp).getTime() + diff
+          ).toISOString(),
+        }));
+      }
+    }
+
+    salesDataCache = data;
     console.log(
       `📦 [BigQueryService] Datos locales cargados: ${salesDataCache.length} transacciones`
     );
@@ -118,9 +144,17 @@ export const getGeneralStats = async () => {
 /**
  * Obtener ventas agrupadas por categoría
  */
-export const getSalesByCategory = async () => {
+export const getSalesByCategory = async (startDate = null) => {
   // PRODUCCIÓN
   if (isProduction && bigQueryClient) {
+    let dateFilter = "";
+    const params = {};
+
+    if (startDate) {
+      dateFilter = "WHERE timestamp >= @startDate";
+      params.startDate = startDate; // BigQuery uses TIMESTAMP or DATETIME
+    }
+
     const query = `
       SELECT 
         category,
@@ -128,14 +162,22 @@ export const getSalesByCategory = async () => {
         COUNT(*) as transactions,
         AVG(amount) as avgTicket
       FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.dataset}.${bigQueryConfig.tables.salesTransactions}\`
+      ${dateFilter}
       GROUP BY category
       ORDER BY totalSales DESC
     `;
-    return await runQuery(query);
+    return await runQuery(query, params);
   }
 
   // DESARROLLO
-  const data = loadSalesData();
+  let data = loadSalesData();
+
+  if (startDate) {
+    // startDate format YYYY-MM-DD
+    const start = new Date(startDate);
+    data = data.filter((t) => new Date(t.timestamp) >= start);
+  }
+
   const categories = {};
 
   data.forEach((transaction) => {

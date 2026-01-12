@@ -1,16 +1,16 @@
 <template>
-  <div class="sales-chart card">
-    <div class="chart-header">
+  <div class="card p-6">
+    <div class="flex justify-between items-start mb-6 flex-wrap gap-4">
       <div>
-        <h3 class="chart-title">{{ title }}</h3>
-        <p class="chart-subtitle">{{ subtitle }}</p>
+        <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ title }}</h3>
+        <p class="text-xs text-gray-500">{{ subtitle }}</p>
       </div>
-      <div class="chart-filters">
+      <div class="flex gap-1 bg-slate-100 p-1 rounded-xl">
         <button
           v-for="range in timeRanges"
           :key="range.value"
-          class="filter-btn"
-          :class="{ active: selectedRange === range.value }"
+          class="px-3.5 py-1.5 bg-transparent border-none rounded-lg text-xs font-semibold text-gray-500 cursor-pointer transition-all hover:text-gray-800"
+          :class="{ 'bg-white text-blue-600 shadow-sm': selectedRange === range.value }"
           @click="changeRange(range.value)"
         >
           {{ range.label }}
@@ -18,23 +18,23 @@
       </div>
     </div>
 
-    <div class="chart-body">
+    <div class="h-[280px] mb-4">
       <Line
         v-if="!isLoading && chartData"
         ref="chartRef"
         :data="chartData"
         :options="chartOptions"
       />
-      <div v-else class="chart-skeleton skeleton" style="height: 280px"></div>
+      <div v-else class="skeleton h-full w-full rounded-xl"></div>
     </div>
 
-    <div class="chart-legend">
-      <div class="legend-item">
-        <span class="legend-dot" style="background: #3b82f6"></span>
+    <div class="flex justify-center gap-6">
+      <div class="flex items-center gap-1.5 text-xs text-gray-500">
+        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
         <span>Historical</span>
       </div>
-      <div class="legend-item">
-        <span class="legend-dot" style="background: #06b6d4"></span>
+      <div class="flex items-center gap-1.5 text-xs text-gray-500">
+        <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
         <span>Forecast</span>
       </div>
     </div>
@@ -261,84 +261,3 @@ const chartOptions = computed(() => ({
   },
 }));
 </script>
-
-<style scoped>
-.sales-chart {
-  padding: var(--spacing-lg);
-}
-
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-lg);
-  flex-wrap: wrap;
-  gap: var(--spacing-md);
-}
-
-.chart-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.chart-subtitle {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.chart-filters {
-  display: flex;
-  gap: 4px;
-  background: #f1f5f9;
-  padding: 4px;
-  border-radius: var(--radius-md);
-}
-
-.filter-btn {
-  padding: 6px 14px;
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.filter-btn:hover {
-  color: var(--text-primary);
-}
-
-.filter-btn.active {
-  background: white;
-  color: var(--primary-600);
-  box-shadow: var(--shadow-sm);
-}
-
-.chart-body {
-  height: 280px;
-  margin-bottom: var(--spacing-md);
-}
-
-.chart-legend {
-  display: flex;
-  justify-content: center;
-  gap: var(--spacing-lg);
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-
-.legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-</style>

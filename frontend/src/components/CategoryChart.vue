@@ -1,52 +1,56 @@
 <template>
-  <div class="category-chart card">
-    <div class="chart-header">
+  <div class="card p-6 h-full flex flex-col">
+    <div class="flex justify-between items-start mb-6">
       <div>
-        <h3 class="chart-title">Product Statistics</h3>
-        <p class="chart-subtitle">Track your product sales</p>
+        <h3 class="text-lg font-semibold text-gray-800 mb-1">Product Statistics</h3>
+        <p class="text-xs text-gray-500">Track your product sales</p>
       </div>
-      <select class="period-select">
-        <option>Today</option>
-        <option>This Week</option>
-        <option>This Month</option>
+      <select
+        v-model="selectedPeriod"
+        class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-500 bg-white cursor-pointer focus:outline-none focus:border-blue-500"
+        @change="$emit('filter-change', selectedPeriod)"
+      >
+        <option value="today">Today</option>
+        <option value="week">This Week</option>
+        <option value="month">This Month</option>
       </select>
     </div>
 
-    <div class="chart-content">
+    <div class="flex-1 flex flex-col gap-6">
       <!-- Ring Chart -->
-      <div class="ring-chart-container">
+      <div class="relative h-[180px] flex justify-center">
         <Doughnut
           v-if="!isLoading && chartData"
           :data="chartData"
           :options="chartOptions"
         />
-        <div class="ring-center">
-          <span class="ring-value">{{ totalFormatted }}</span>
-          <span class="ring-label">Total Sales</span>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+          <span class="block text-2xl font-bold text-slate-800">{{ totalFormatted }}</span>
+          <span class="text-[10px] text-slate-400 uppercase tracking-wide">Total Sales</span>
         </div>
       </div>
 
       <!-- Category List -->
-      <div class="category-list">
+      <div class="flex flex-col gap-3 mt-auto">
         <div
           v-for="(category, index) in data"
           :key="category.category"
-          class="category-item"
+          class="flex justify-between items-center py-1"
         >
-          <div class="category-info">
+          <div class="flex items-center gap-3">
             <span
-              class="category-dot"
+              class="w-2.5 h-2.5 rounded-full"
               :style="{ background: colors[index] }"
             ></span>
-            <span class="category-name">{{ category.category }}</span>
+            <span class="text-sm font-medium text-slate-700">{{ category.category }}</span>
           </div>
-          <div class="category-stats">
-            <span class="category-value">{{
+          <div class="flex items-center gap-3">
+            <span class="text-sm font-semibold text-slate-800">{{
               formatNumber(category.totalSales)
             }}</span>
             <span
-              class="category-badge"
-              :class="index % 2 === 0 ? 'positive' : 'neutral'"
+              class="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+              :class="index % 2 === 0 ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500'"
             >
               {{ index % 2 === 0 ? "+" : ""
               }}{{ (1.5 + index * 0.3).toFixed(1) }}%
@@ -69,6 +73,9 @@ const props = defineProps({
   data: { type: Array, default: () => [] },
   isLoading: { type: Boolean, default: false },
 });
+
+const emit = defineEmits(["filter-change"]);
+const selectedPeriod = ref("today");
 
 const shouldAnimate = ref(true); // Controls full animation
 
@@ -109,6 +116,7 @@ const chartData = computed(() => {
         borderWidth: 0,
         cutout: "75%",
         spacing: 2,
+        hoverOffset: 12, // Animate segments on hover
       },
     ],
   };
@@ -126,7 +134,20 @@ const chartOptions = computed(() => ({
       }
     : { duration: 300 }, // Quick updates for real-time data
   hover: {
+    mode: 'nearest',
+    intersect: true,
     animationDuration: 200,
+  },
+  onHover: (event, chartElement) => {
+    // Optional: Add custom behavior on hover if needed
+    if(chartElement.length) {
+      event.native.target.style.cursor = 'pointer';
+    } else {
+      event.native.target.style.cursor = 'default';
+    }
+  },
+  layout: {
+    padding: 20
   },
   plugins: {
     legend: { display: false },
@@ -144,130 +165,3 @@ const chartOptions = computed(() => ({
   },
 }));
 </script>
-
-<style scoped>
-.category-chart {
-  padding: var(--spacing-lg);
-}
-
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-lg);
-}
-
-.chart-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.chart-subtitle {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.period-select {
-  padding: 6px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  background: white;
-  cursor: pointer;
-}
-
-.chart-content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
-.ring-chart-container {
-  position: relative;
-  height: 180px;
-  display: flex;
-  justify-content: center;
-}
-
-.ring-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-}
-
-.ring-value {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.ring-label {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-}
-
-.category-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.category-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-sm) 0;
-}
-
-.category-info {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.category-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.category-name {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.category-stats {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.category-value {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.category-badge {
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.65rem;
-  font-weight: 600;
-}
-
-.category-badge.positive {
-  background: #dcfce7;
-  color: #16a34a;
-}
-
-.category-badge.neutral {
-  background: #f1f5f9;
-  color: var(--text-secondary);
-}
-</style>

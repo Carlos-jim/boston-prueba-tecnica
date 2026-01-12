@@ -1,27 +1,27 @@
 <template>
-  <div class="kpi-card card">
-    <div class="kpi-header">
-      <div class="icon-wrapper" :class="iconClass">
+  <div class="card p-6 flex flex-col gap-4 min-h-[160px] animate-[fadeSlideUp_0.5s_ease-out_both]">
+    <div class="flex items-center justify-between">
+      <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-slate-100 text-slate-800">
         <component :is="iconComponent" :size="20" />
       </div>
-      <span v-if="badge" class="badge" :class="badgeClass">
+      <span v-if="badge" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold" :class="badgeClass">
         {{ badgeIcon }} {{ badge }}
       </span>
-      <span v-if="isLive" class="live-badge">
-        <Radio :size="12" />
+      <span v-if="isLive" class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 rounded-full text-xs font-semibold text-green-600 uppercase tracking-wide">
+        <span class="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse"></span>
         Live
       </span>
     </div>
 
-    <div class="kpi-body">
-      <div class="kpi-value" ref="valueRef">{{ displayValue }}</div>
-      <div class="kpi-label">{{ label }}</div>
+    <div class="flex-1">
+      <div class="text-3xl font-bold text-gray-800 mb-1 transition-all duration-300" ref="valueRef">{{ displayValue }}</div>
+      <div class="text-sm text-gray-500">{{ label }}</div>
     </div>
 
-    <div v-if="trend !== undefined" class="kpi-trend" :class="trendClass">
+    <div v-if="trend !== undefined" class="flex items-center gap-1 text-xs font-medium" :class="trendClass">
       <component :is="trendIconComponent" :size="14" />
       <span>{{ Math.abs(trend) }}%</span>
-      <span class="trend-label">vs last month</span>
+      <span class="text-gray-400 ml-1">vs last month</span>
     </div>
   </div>
 </template>
@@ -86,18 +86,16 @@ const displayValue = computed(() => {
   return `${props.prefix}${formatted}${props.suffix}`;
 });
 
-const iconClass = computed(() => `icon-${props.color}`);
-
 const badgeClass = computed(() => {
-  if (props.trend === undefined) return "badge-primary";
-  return props.trend >= 0 ? "badge-success" : "badge-danger";
+  if (props.trend === undefined) return "bg-blue-100 text-blue-700";
+  return props.trend >= 0 ? "bg-green-100 text-green-600" : "bg-red-50 text-red-600";
 });
 
 const badgeIcon = computed(() => (props.trend >= 0 ? "↑" : "↓"));
 
 const trendClass = computed(() => {
   if (props.trend === undefined) return "";
-  return props.trend >= 0 ? "trend-up" : "trend-down";
+  return props.trend >= 0 ? "text-green-600" : "text-red-500";
 });
 
 const trendIconComponent = computed(() =>
@@ -109,135 +107,11 @@ watch(
   (newVal, oldVal) => {
     // Only flash if value actually changed and component is mounted
     if (valueRef.value && newVal !== oldVal) {
-      valueRef.value.classList.add("value-flash");
-      setTimeout(() => valueRef.value?.classList.remove("value-flash"), 600);
+      valueRef.value.classList.add("scale-110", "text-green-500", "drop-shadow-lg");
+      // Need to handle removing classes manually or via a reactive state
+      // Using direct DOM manipulation here to match previous behavior
+      setTimeout(() => valueRef.value?.classList.remove("scale-110", "text-green-500", "drop-shadow-lg"), 600);
     }
   }
 );
 </script>
-
-<style scoped>
-.kpi-card {
-  padding: var(--spacing-lg);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  min-height: 160px;
-  animation: fadeSlideUp 0.5s ease-out both;
-}
-
-@keyframes fadeSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.kpi-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.icon-wrapper {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f1f5f9;
-  color: #1e293b;
-}
-
-.icon-primary,
-.icon-success,
-.icon-warning,
-.icon-purple {
-  background: #f1f5f9;
-  color: #1e293b;
-}
-
-.live-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  background: #dcfce7;
-  border-radius: 20px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #16a34a;
-  text-transform: uppercase;
-}
-
-.kpi-body {
-  flex: 1;
-}
-
-.kpi-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 4px;
-  transition: all 0.3s ease;
-}
-
-.kpi-value.value-flash {
-  transform: scale(1.08);
-  color: var(--success);
-  text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
-}
-
-.kpi-label {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
-.kpi-trend {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.kpi-trend.trend-up {
-  color: var(--success);
-}
-.kpi-trend.trend-down {
-  color: var(--danger);
-}
-
-.trend-label {
-  color: var(--text-muted);
-  margin-left: 4px;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.badge-success {
-  background: #dcfce7;
-  color: #16a34a;
-}
-.badge-danger {
-  background: #fef2f2;
-  color: #dc2626;
-}
-.badge-primary {
-  background: var(--primary-100);
-  color: var(--primary-700);
-}
-</style>

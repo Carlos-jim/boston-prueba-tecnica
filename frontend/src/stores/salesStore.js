@@ -31,6 +31,7 @@ export const useSalesStore = defineStore("sales", () => {
     lastMinuteSales: 0,
     lastMinuteTransactions: 0,
     recentTransactions: [],
+    sessionTransactions: 0,
   });
 
   // Loading states
@@ -165,9 +166,13 @@ export const useSalesStore = defineStore("sales", () => {
     }
   }
 
-  async function fetchCategoryStats() {
+  async function fetchCategoryStats(period = null) {
     try {
-      const response = await fetch(`${API_URL}/sales/by-category`);
+      let url = `${API_URL}/sales/by-category`;
+      if (period) {
+        url += `?period=${period}`;
+      }
+      const response = await fetch(url);
       const data = await response.json();
       if (data.success) {
         categoryStats.value = data.data;
@@ -264,6 +269,7 @@ export const useSalesStore = defineStore("sales", () => {
         lastMinuteSales: data.stats.lastMinuteSales,
         lastMinuteTransactions: data.stats.lastMinuteTransactions,
         recentTransactions: data.stats.recentTransactions || [],
+        sessionTransactions: (realtimeStats.value.sessionTransactions || 0) + 1,
       };
 
       // Update all other stats with this transaction
