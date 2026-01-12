@@ -90,12 +90,18 @@ export const loadSalesData = () => {
 
 /**
  * Ejecutar query en BigQuery (producción)
+ * @param {string} query - SQL query
+ * @param {Object} params - Query parameters for parameterized queries
  */
-const runQuery = async (query) => {
+const runQuery = async (query, params = {}) => {
   if (!bigQueryClient) {
     throw new Error("BigQuery client not initialized");
   }
-  const [rows] = await bigQueryClient.query({ query });
+  const options = { query };
+  if (Object.keys(params).length > 0) {
+    options.params = params;
+  }
+  const [rows] = await bigQueryClient.query(options);
   return rows;
 };
 

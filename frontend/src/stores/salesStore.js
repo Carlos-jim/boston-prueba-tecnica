@@ -5,7 +5,7 @@
  */
 
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
+import { ref, computed, shallowRef } from "vue";
 import { io } from "socket.io-client";
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:3001";
@@ -15,7 +15,7 @@ export const useSalesStore = defineStore("sales", () => {
   // ============================================
   // State
   // ============================================
-  const socket = ref(null);
+  const socket = shallowRef(null);
   const isConnected = ref(false);
   const connectionError = ref(null);
 

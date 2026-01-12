@@ -4,6 +4,7 @@
  * Utiliza async/await con manejo centralizado de errores
  */
 
+import { z } from "zod";
 import * as bigQueryService from "../services/bigQueryService.js";
 import * as simulatorService from "../services/simulatorService.js";
 import {
@@ -11,6 +12,15 @@ import {
   successResponse,
   errorResponse,
 } from "../utils/asyncHandler.js";
+
+// ============================================
+// Validation Schemas
+// ============================================
+const periodSchema = z.enum(["today", "week", "month"]).optional();
+const dateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format")
+  .optional();
 
 /**
  * GET /api/sales/stats
@@ -32,9 +42,20 @@ export const getStats = asyncHandler(async (req, res) => {
 /**
  * GET /api/sales/by-category
  * Obtiene ventas agregadas por categoría
+ * Query params: period (today, week, month)
  */
 export const getByCategory = asyncHandler(async (req, res) => {
-  const { period } = req.query;
+  // Validate period parameter
+  const periodResult = periodSchema.safeParse(req.query.period);
+  if (!periodResult.success) {
+    return errorResponse(
+      res,
+      "Invalid period. Must be: today, week, or month",
+      400
+    );
+  }
+
+  const period = periodResult.data;
   let startDate = null;
 
   if (period) {
@@ -74,11 +95,31 @@ export const getByRegion = asyncHandler(async (req, res) => {
  * Query params: from, to (formato YYYY-MM-DD)
  */
 export const getDaily = asyncHandler(async (req, res) => {
+  // Validate date parameters
+  const fromResult = dateSchema.safeParse(req.query.from);
+  const toResult = dateSchema.safeParse(req.query.to);
+
+  if (!fromResult.success) {
+    return errorResponse(
+      res,
+      "Invalid 'from' date. Must be in YYYY-MM-DD format",
+      400
+    );
+  }
+  if (!toResult.success) {
+    return errorResponse(
+      res,
+      "Invalid 'to' date. Must be in YYYY-MM-DD format",
+      400
+    );
+  }
+
+  const from = fromResult.data;
+  const to = toResult.data;
+
   let data = await bigQueryService.getDailySales();
 
   // Filtrar por rango de fechas si se especifica
-  const { from, to } = req.query;
-
   if (from) {
     data = data.filter((d) => d.date >= from);
   }

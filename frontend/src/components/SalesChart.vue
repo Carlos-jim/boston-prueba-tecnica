@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { Line } from "vue-chartjs";
 import {
   Chart as ChartJS,
@@ -89,11 +89,21 @@ const timeRanges = [
 
 const selectedRange = ref(30);
 
+// Timeout refs for cleanup
+let animationTimeout = null;
+let rangeTimeout = null;
+
 // After initial animation completes, disable animation for real-time updates
 onMounted(() => {
-  setTimeout(() => {
+  animationTimeout = setTimeout(() => {
     shouldAnimate.value = false;
   }, 800);
+});
+
+// Cleanup timeouts on unmount to prevent memory leaks
+onUnmounted(() => {
+  if (animationTimeout) clearTimeout(animationTimeout);
+  if (rangeTimeout) clearTimeout(rangeTimeout);
 });
 
 // Change range with animation - temporarily enable animation for filter change
@@ -101,8 +111,11 @@ const changeRange = (value) => {
   shouldAnimate.value = true; // Enable animation for filter change
   selectedRange.value = value;
 
+  // Clear existing timeout if any
+  if (rangeTimeout) clearTimeout(rangeTimeout);
+  
   // Disable animation again after filter animation completes
-  setTimeout(() => {
+  rangeTimeout = setTimeout(() => {
     shouldAnimate.value = false;
   }, 700);
 };
