@@ -74,27 +74,31 @@ export const useSalesStore = defineStore("sales", () => {
   function updateStatsWithTransaction(transaction) {
     // Update general stats
     if (generalStats.value) {
+      const currentTotal = Number(generalStats.value.totalSales) || 0;
+      const currentTransactions =
+        Number(generalStats.value.totalTransactions) || 0;
+      const amount = Number(transaction.amount) || 0;
       generalStats.value = {
         ...generalStats.value,
-        totalSales: generalStats.value.totalSales + transaction.amount,
-        totalTransactions: generalStats.value.totalTransactions + 1,
-        avgTicket:
-          (generalStats.value.totalSales + transaction.amount) /
-          (generalStats.value.totalTransactions + 1),
+        totalSales: currentTotal + amount,
+        totalTransactions: currentTransactions + 1,
+        avgTicket: (currentTotal + amount) / (currentTransactions + 1),
       };
     }
 
-    // Update category stats
     if (categoryStats.value.length > 0) {
       const categoryIndex = categoryStats.value.findIndex(
         (c) => c.category === transaction.category
       );
       if (categoryIndex !== -1) {
         const updated = [...categoryStats.value];
+        const currentSales = Number(updated[categoryIndex].totalSales) || 0;
+        const currentTx = Number(updated[categoryIndex].transactions) || 0;
+        const amount = Number(transaction.amount) || 0;
         updated[categoryIndex] = {
           ...updated[categoryIndex],
-          totalSales: updated[categoryIndex].totalSales + transaction.amount,
-          transactions: updated[categoryIndex].transactions + 1,
+          totalSales: currentSales + amount,
+          transactions: currentTx + 1,
         };
         categoryStats.value = updated;
       }
@@ -107,10 +111,13 @@ export const useSalesStore = defineStore("sales", () => {
       );
       if (regionIndex !== -1) {
         const updated = [...regionStats.value];
+        const currentSales = Number(updated[regionIndex].totalSales) || 0;
+        const currentTx = Number(updated[regionIndex].transactions) || 0;
+        const amount = Number(transaction.amount) || 0;
         updated[regionIndex] = {
           ...updated[regionIndex],
-          totalSales: updated[regionIndex].totalSales + transaction.amount,
-          transactions: updated[regionIndex].transactions + 1,
+          totalSales: currentSales + amount,
+          transactions: currentTx + 1,
         };
         regionStats.value = updated;
       }
@@ -120,13 +127,16 @@ export const useSalesStore = defineStore("sales", () => {
     if (dailySales.value.length > 0) {
       const today = new Date().toISOString().split("T")[0];
       const todayIndex = dailySales.value.findIndex((d) => d.date === today);
+      const amount = Number(transaction.amount) || 0;
 
       if (todayIndex !== -1) {
         const updated = [...dailySales.value];
+        const currentSales = Number(updated[todayIndex].totalSales) || 0;
+        const currentTx = Number(updated[todayIndex].transactions) || 0;
         updated[todayIndex] = {
           ...updated[todayIndex],
-          totalSales: updated[todayIndex].totalSales + transaction.amount,
-          transactions: (updated[todayIndex].transactions || 0) + 1,
+          totalSales: currentSales + amount,
+          transactions: currentTx + 1,
         };
         dailySales.value = updated;
       } else {
@@ -135,7 +145,7 @@ export const useSalesStore = defineStore("sales", () => {
           ...dailySales.value,
           {
             date: today,
-            totalSales: transaction.amount,
+            totalSales: amount,
             transactions: 1,
           },
         ];
@@ -153,10 +163,14 @@ export const useSalesStore = defineStore("sales", () => {
       if (data.success) {
         generalStats.value = data.data;
         realtimeStats.value = {
+          ...realtimeStats.value,
           lastMinuteSales: data.data.realtime?.lastMinuteSales || 0,
           lastMinuteTransactions:
             data.data.realtime?.lastMinuteTransactions || 0,
-          recentTransactions: [],
+          recentTransactions:
+            data.data.realtime?.recentTransactions ||
+            realtimeStats.value.recentTransactions ||
+            [],
         };
       }
     } catch (error) {
@@ -167,15 +181,23 @@ export const useSalesStore = defineStore("sales", () => {
   }
 
   async function fetchCategoryStats(period = null) {
+    console.log("🔍 fetchCategoryStats called with period:", period);
     try {
       let url = `${API_URL}/sales/by-category`;
       if (period) {
         url += `?period=${period}`;
       }
+      console.log("📡 Fetching:", url);
       const response = await fetch(url);
       const data = await response.json();
+      console.log("📊 Response:", data);
       if (data.success) {
         categoryStats.value = data.data;
+        console.log(
+          "✅ categoryStats updated:",
+          categoryStats.value.length,
+          "categories"
+        );
       }
     } catch (error) {
       console.error("Error fetching category stats:", error);

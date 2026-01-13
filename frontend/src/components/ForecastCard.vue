@@ -2,28 +2,28 @@
   <div class="card p-6 h-full flex flex-col">
     <div class="flex justify-between items-start mb-6 gap-4 flex-wrap">
       <div>
-        <h3 class="text-lg font-semibold text-gray-800 mb-1">7-Day Sales Forecast</h3>
+        <h3 class="text-lg font-semibold text-gray-800 mb-1">Pronóstico (7 Días)</h3>
         <p class="text-xs text-gray-500 flex items-center gap-2">
           <span class="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase" 
                 :class="isSimulated ? 'bg-amber-500 text-slate-800' : 'bg-blue-500 text-white'">{{
             modelName
           }}</span>
-          Predicted revenue
+          Ingresos predichos
         </p>
       </div>
       <span class="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-3 py-1 rounded-full font-medium">
         <Target :size="14" />
-        95% confidence
+        95% confianza
       </span>
     </div>
 
     <div class="flex flex-col gap-6">
       <!-- Total Projection -->
       <div class="bg-slate-50 rounded-xl p-6 text-center">
-        <span class="block text-[10px] font-semibold text-gray-400 tracking-wider mb-2 uppercase">PROJECTED TOTAL</span>
+        <span class="block text-[10px] font-semibold text-gray-400 tracking-wider mb-2 uppercase">TOTAL PROYECTADO</span>
         <span class="block text-4xl font-bold text-gray-800 mb-1">${{ formatNumber(totalForecast) }}</span>
         <span class="text-xs text-gray-500"
-          >Range: ${{ formatNumber(lowerBound) }} - ${{
+          >Rango: ${{ formatNumber(lowerBound) }} - ${{
             formatNumber(upperBound)
           }}</span
         >
@@ -54,7 +54,7 @@
 
     <div class="flex items-center gap-1 pt-4 mt-6 border-t border-gray-100 text-xs text-gray-400">
       <Clock :size="12" />
-      <span>Last updated: {{ formatUpdateTime(generatedAt) }}</span>
+      <span>Actualizado: {{ formatUpdateTime(generatedAt) }}</span>
     </div>
   </div>
 </template>
@@ -74,16 +74,16 @@ const props = defineProps({
 const isSimulated = computed(() => props.modelName.includes("simulated"));
 
 const totalForecast = computed(() =>
-  props.predictions.reduce((sum, d) => sum + d.predictedSales, 0)
+  props.predictions.reduce((sum, d) => sum + Number(d.predictedSales), 0)
 );
 const lowerBound = computed(() =>
-  props.predictions.reduce((sum, d) => sum + d.lowerBound, 0)
+  props.predictions.reduce((sum, d) => sum + Number(d.lowerBound), 0)
 );
 const upperBound = computed(() =>
-  props.predictions.reduce((sum, d) => sum + d.upperBound, 0)
+  props.predictions.reduce((sum, d) => sum + Number(d.upperBound), 0)
 );
 const maxValue = computed(() =>
-  Math.max(...props.predictions.map((d) => d.predictedSales))
+  Math.max(...props.predictions.map((d) => Number(d.predictedSales)))
 );
 
 const getBarWidth = (val) =>

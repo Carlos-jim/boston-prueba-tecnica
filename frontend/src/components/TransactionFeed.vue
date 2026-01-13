@@ -2,17 +2,17 @@
   <div class="card p-6 flex flex-col h-full">
     <div class="flex justify-between items-center mb-6">
       <div class="flex items-center gap-2">
-        <h3 class="text-lg font-semibold text-gray-800">Live Transactions</h3>
+        <h3 class="text-lg font-semibold text-gray-800">Transacciones en Vivo</h3>
         <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 rounded-full text-[10px] font-semibold text-green-600 uppercase">
           <Radio :size="10" />
-          Live
+          En Vivo
         </span>
       </div>
       <span class="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-medium" 
             :class="isConnected ? 'bg-green-100 text-green-600' : 'bg-red-50 text-red-600'">
         <Wifi v-if="isConnected" :size="12" />
         <WifiOff v-else :size="12" />
-        {{ isConnected ? "Connected" : "Reconnecting..." }}
+        {{ isConnected ? "Conectado" : "Reconectando..." }}
       </span>
     </div>
 
@@ -24,7 +24,7 @@
         leave-to-class="opacity-0 translate-x-5"
       >
         <div
-          v-for="tx in transactions.slice(0, 5)"
+          v-for="tx in transactions.slice(0, 10)"
           :key="tx.transaction_id"
           class="flex items-center gap-4 p-2 rounded-xl transition-all duration-200 hover:bg-slate-50"
         >
@@ -43,17 +43,17 @@
 
       <div v-if="!transactions.length" class="flex-1 flex flex-col items-center justify-center py-8 text-gray-400 gap-2">
         <Radio :size="32" class="opacity-50" />
-        <p>Waiting for transactions...</p>
+        <p>Esperando transacciones...</p>
       </div>
     </div>
 
     <div class="flex justify-around pt-6 mt-6 border-t border-gray-100">
       <div class="text-center">
-        <span class="block text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">LAST MINUTE</span>
+        <span class="block text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">ÚLTIMO MINUTO</span>
         <span class="text-xl font-bold text-gray-800">${{ lastMinuteSales.toFixed(2) }}</span>
       </div>
       <div class="text-center">
-        <span class="block text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">SESSION TRANSACTIONS</span>
+        <span class="block text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">TRANSACCIONES SESIÓN</span>
         <span class="text-xl font-bold text-gray-800">{{ lastMinuteCount }}</span>
       </div>
     </div>

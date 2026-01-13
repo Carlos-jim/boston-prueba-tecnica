@@ -12,7 +12,7 @@ Dashboard de ventas en tiempo real con predicciones ML para e-commerce.
 
 - **Node.js** v18.0.0 o superior
 - **npm** o **pnpm**
-- (Opcional) Cuenta de Google Cloud con BigQuery habilitado
+- Cuenta de Google Cloud con BigQuery habilitado
 
 ### 1. Clonar el repositorio
 
@@ -53,7 +53,7 @@ Para conectar con BigQuery real, crea un archivo `.env` en `/backend`:
 ```env
 NODE_ENV=production
 GCLOUD_PROJECT_ID=tu-proyecto-gcp
-GCLOUD_KEYFILE_PATH=./path/to/service-account.json
+GCLOUD_KEYFILE_PATH=./src/config/service-account.json
 BIGQUERY_BATCH_SIZE=5
 # Simulador de transacciones
 SIMULATOR_MIN_INTERVAL_MS=2000
@@ -210,11 +210,11 @@ boston-prueba-tecnica/
 
 ### ¿Por qué particionar por `DATE(timestamp)`?
 
-Las consultas del dashboard de e-commerce casi siempre involucran filtros por fecha: "ventas del último mes", "comparación year-over-year", "tendencias semanales". Al particionar por fecha, BigQuery solo escanea las particiones relevantes en lugar de toda la tabla, reduciendo significativamente los costos de procesamiento y mejorando los tiempos de respuesta. Para un dataset que crece diariamente con miles de transacciones, esta optimización es fundamental para mantener consultas performantes a largo plazo.
+Las consultas en el panel de control de comercio electrónico, a menudo, implican filtrar por fecha, como las "ventas del último mes", la "comparación interanual", o incluso las "tendencias semanales". Cuando uno particiona por fecha, BigQuery solo examina las particiones necesarias, y no la tabla completa, lo que disminuye los costos de procesamiento notablemente y acelerando los tiempos de respuesta. Esta optimización, es importantisima, especialmente para un conjunto de datos que crece día a día, con miles de transacciones, si queremos tener consultas rápidas a largo plazo.
 
 ### ¿Por qué clusterizar por `category` y `region`?
 
-Los reportes de negocio más frecuentes en e-commerce segmentan datos por categoría de producto ("¿Cuánto vendimos en Electronics?") y por región geográfica ("¿Cómo está performando LATAM?"). Al clusterizar por estos dos campos, BigQuery organiza físicamente los datos de manera contigua, permitiendo lecturas secuenciales más eficientes cuando se aplican estos filtros. La combinación de ambos campos como cluster keys responde a que las queries del dashboard típicamente filtran por ambas dimensiones simultáneamente (ej: "Ventas de Clothing en US-East").
+Los informes empresariales usuales en el comercio electrónico trozan datos por tipo de producto como por ejemplo "¿Cuánto se vendió en Electrónicos?" también por área geográfica "¿Cómo va LATAM?". Al agrupar por ambos elementos BigQuery acomoda físicamente los datos, optimizando las lecturas secuenciales al usar tales filtros. Juntar ambos como cluster keys obedece a que las consultas del panel usualmente filtran a través de ambas dimensiones a la vez como “Ventas de Ropa en US-Este”.
 
 ### Resultado esperado
 

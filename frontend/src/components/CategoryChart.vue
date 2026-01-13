@@ -2,17 +2,18 @@
   <div class="card p-6 h-full flex flex-col">
     <div class="flex justify-between items-start mb-6">
       <div>
-        <h3 class="text-lg font-semibold text-gray-800 mb-1">Product Statistics</h3>
-        <p class="text-xs text-gray-500">Track your product sales</p>
+        <h3 class="text-lg font-semibold text-gray-800 mb-1">Estadísticas de Productos</h3>
+        <p class="text-xs text-gray-500">Rastrea tus ventas de productos</p>
       </div>
       <select
         v-model="selectedPeriod"
         class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-500 bg-white cursor-pointer focus:outline-none focus:border-blue-500"
         @change="$emit('filter-change', selectedPeriod)"
       >
-        <option value="today">Today</option>
-        <option value="week">This Week</option>
-        <option value="month">This Month</option>
+        <option value="">Todo</option>
+        <option value="today">Hoy</option>
+        <option value="week">Esta Semana</option>
+        <option value="month">Este Mes</option>
       </select>
     </div>
 
@@ -26,7 +27,7 @@
         />
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
           <span class="block text-2xl font-bold text-slate-800">{{ totalFormatted }}</span>
-          <span class="text-[10px] text-slate-400 uppercase tracking-wide">Total Sales</span>
+          <span class="text-[10px] text-slate-400 uppercase tracking-wide">Ventas Totales</span>
         </div>
       </div>
 
@@ -75,7 +76,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["filter-change"]);
-const selectedPeriod = ref("today");
+const selectedPeriod = ref("");
 
 const shouldAnimate = ref(true); // Controls full animation
 
@@ -89,7 +90,7 @@ onMounted(() => {
 const colors = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b"];
 
 const totalSales = computed(() =>
-  props.data.reduce((sum, cat) => sum + cat.totalSales, 0)
+  props.data.reduce((sum, cat) => sum + Number(cat.totalSales), 0)
 );
 
 const totalFormatted = computed(() => {
@@ -100,9 +101,10 @@ const totalFormatted = computed(() => {
 });
 
 const formatNumber = (num) => {
-  if (num >= 1000000) return (num / 1000000).toFixed(2) + "M";
-  if (num >= 1000) return (num / 1000).toFixed(1) + "K";
-  return num.toFixed(0);
+  const n = Number(num) || 0;
+  if (n >= 1000000) return (n / 1000000).toFixed(2) + "M";
+  if (n >= 1000) return (n / 1000).toFixed(1) + "K";
+  return n.toFixed(0);
 };
 
 const chartData = computed(() => {
@@ -111,7 +113,7 @@ const chartData = computed(() => {
     labels: props.data.map((d) => d.category),
     datasets: [
       {
-        data: props.data.map((d) => d.totalSales),
+        data: props.data.map((d) => Number(d.totalSales)),
         backgroundColor: colors.slice(0, props.data.length),
         borderWidth: 0,
         cutout: "75%",

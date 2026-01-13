@@ -33,11 +33,11 @@
     <div class="flex justify-center gap-6">
       <div class="flex items-center gap-1.5 text-xs text-gray-500">
         <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-        <span>Historical</span>
+        <span>Histórico</span>
       </div>
       <div class="flex items-center gap-1.5 text-xs text-gray-500">
         <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
-        <span>Forecast</span>
+        <span>Pronóstico</span>
       </div>
     </div>
   </div>
@@ -70,8 +70,8 @@ ChartJS.register(
 );
 
 const props = defineProps({
-  title: { type: String, default: "Sales Overview" },
-  subtitle: { type: String, default: "Historical data with forecast" },
+  title: { type: String, default: "Resumen de Ventas" },
+  subtitle: { type: String, default: "Datos históricos con proyección" },
   data: { type: Array, default: () => [] },
   forecastData: { type: Array, default: () => [] },
   isLoading: { type: Boolean, default: false },
@@ -84,7 +84,7 @@ const timeRanges = [
   { label: "7D", value: 7 },
   { label: "30D", value: 30 },
   { label: "90D", value: 90 },
-  { label: "All", value: -1 },
+  { label: "Todos", value: -1 },
 ];
 
 const selectedRange = ref(30);
@@ -130,12 +130,12 @@ const chartData = computed(() => {
 
   const historicalLabels = filteredData.value.map((d) => {
     const date = new Date(d.date);
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    return date.toLocaleDateString("es-ES", { month: "short", day: "numeric" });
   });
 
   const forecastLabels = props.forecastData.map((d) => {
     const date = new Date(d.date);
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    return date.toLocaleDateString("es-ES", { month: "short", day: "numeric" });
   });
 
   const allLabels = [...historicalLabels, ...forecastLabels];
@@ -160,7 +160,7 @@ const chartData = computed(() => {
     labels: allLabels,
     datasets: [
       {
-        label: "Historical Sales",
+        label: "Ventas Históricas",
         data: historicalValues,
         borderColor: "#3b82f6",
         backgroundColor: "rgba(59, 130, 246, 0.08)",
@@ -174,7 +174,7 @@ const chartData = computed(() => {
         borderWidth: 2.5,
       },
       {
-        label: "Forecast",
+        label: "Pronóstico",
         data: forecastValues,
         borderColor: "#06b6d4",
         backgroundColor: "rgba(6, 182, 212, 0.08)",

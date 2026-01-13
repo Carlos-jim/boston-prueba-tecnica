@@ -24,9 +24,9 @@ export const formatTime = (isoString) => {
 
 export const formatRelativeTime = (timestamp) => {
   const diff = Math.floor((Date.now() - new Date(timestamp)) / 1000);
-  if (diff < 5) return "Just now";
-  if (diff < 60) return `${diff}s ago`;
-  return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 5) return "Ahora mismo";
+  if (diff < 60) return `hace ${diff}s`;
+  return `hace ${Math.floor(diff / 60)}m`;
 };
 
 export const formatShortNumber = (num) => {
@@ -36,7 +36,7 @@ export const formatShortNumber = (num) => {
 
 export const formatDay = (dateStr) => {
   const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString("es-ES", {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -45,7 +45,7 @@ export const formatDay = (dateStr) => {
 
 export const formatUpdateTime = (dateStr) => {
   if (!dateStr) return "N/A";
-  return new Date(dateStr).toLocaleString("en-US", {
+  return new Date(dateStr).toLocaleString("es-ES", {
     month: "short",
     day: "numeric",
     hour: "2-digit",

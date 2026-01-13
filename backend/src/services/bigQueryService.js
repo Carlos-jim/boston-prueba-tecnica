@@ -106,21 +106,119 @@ const runQuery = async (query, params = {}) => {
 };
 
 /**
- * Obtener estadísticas generales
+ * Normaliza los datos de BigQuery:
+ * - Convierte fechas { value: "..." } a string plano
+ * - Convierte strings numéricas a números
+ * - Maneja BigInt y otros tipos especiales de BigQuery
+ */
+const normalizeValue = (value) => {
+  if (value === null || value === undefined) {
+    return value;
+  }
+  // BigQuery DATE/TIMESTAMP/BigInt returns { value: "..." }
+  if (typeof value === "object" && "value" in value) {
+    const innerValue = value.value;
+    // Check if the inner value is numeric
+    if (
+      typeof innerValue === "string" &&
+      !isNaN(parseFloat(innerValue)) &&
+      isFinite(innerValue)
+    ) {
+      return parseFloat(innerValue);
+    }
+    return innerValue;
+  }
+  // Convert numeric strings to numbers
+  if (
+    typeof value === "string" &&
+    !isNaN(parseFloat(value)) &&
+    isFinite(value)
+  ) {
+    return parseFloat(value);
+  }
+  // Handle BigInt
+  if (typeof value === "bigint") {
+    return Number(value);
+  }
+  return value;
+};
+
+const normalizeRow = (row) => {
+  if (!row) return row;
+  const normalized = {};
+  for (const [key, value] of Object.entries(row)) {
+    normalized[key] = normalizeValue(value);
+  }
+  return normalized;
+};
+
+const normalizeRows = (rows) => rows.map(normalizeRow);
+
+/**
+ * Obtener estadísticas generales con variación mensual
  */
 export const getGeneralStats = async () => {
   // PRODUCCIÓN: Ejecutar query real a BigQuery
   if (isProduction && bigQueryClient) {
+    // Query para obtener stats totales y comparar último mes vs mes anterior del dataset
     const query = `
+      WITH totals AS (
+        SELECT 
+          SUM(amount) as totalSales,
+          COUNT(*) as totalTransactions,
+          AVG(amount) as avgTicket,
+          COUNT(DISTINCT user_id) as uniqueUsers
+        FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.dataset}.${bigQueryConfig.tables.salesTransactions}\`
+      ),
+      dec_2024 AS (
+        SELECT 
+          SUM(amount) as totalSales,
+          COUNT(*) as totalTransactions,
+          COUNT(DISTINCT user_id) as uniqueUsers
+        FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.dataset}.${bigQueryConfig.tables.salesTransactions}\`
+        WHERE EXTRACT(YEAR FROM timestamp) = 2024 AND EXTRACT(MONTH FROM timestamp) = 12
+      ),
+      nov_2024 AS (
+        SELECT 
+          SUM(amount) as totalSales,
+          COUNT(*) as totalTransactions,
+          COUNT(DISTINCT user_id) as uniqueUsers
+        FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.dataset}.${bigQueryConfig.tables.salesTransactions}\`
+        WHERE EXTRACT(YEAR FROM timestamp) = 2024 AND EXTRACT(MONTH FROM timestamp) = 11
+      )
       SELECT 
-        SUM(amount) as totalSales,
-        COUNT(*) as totalTransactions,
-        AVG(amount) as avgTicket,
-        COUNT(DISTINCT user_id) as uniqueUsers
-      FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.dataset}.${bigQueryConfig.tables.salesTransactions}\`
+        t.totalSales,
+        t.totalTransactions,
+        t.avgTicket,
+        t.uniqueUsers,
+        d.totalSales as currSales,
+        d.totalTransactions as currTx,
+        d.uniqueUsers as currUsers,
+        n.totalSales as prevSales,
+        n.totalTransactions as prevTx,
+        n.uniqueUsers as prevUsers
+      FROM totals t, dec_2024 d, nov_2024 n
     `;
     const rows = await runQuery(query);
-    return rows[0] || {};
+    const data = normalizeRow(rows[0]) || {};
+
+    // Calcular variaciones porcentuales
+    const calcTrend = (current, previous) => {
+      if (!previous || previous === 0) return 0;
+      return Math.round(((current - previous) / previous) * 10000) / 100;
+    };
+
+    return {
+      totalSales: data.totalSales || 0,
+      totalTransactions: data.totalTransactions || 0,
+      avgTicket: data.avgTicket || 0,
+      uniqueUsers: data.uniqueUsers || 0,
+      trends: {
+        salesTrend: calcTrend(data.currSales, data.prevSales),
+        transactionsTrend: calcTrend(data.currTx, data.prevTx),
+        usersTrend: calcTrend(data.currUsers, data.prevUsers),
+      },
+    };
   }
 
   // DESARROLLO: Usar datos locales
@@ -131,8 +229,37 @@ export const getGeneralStats = async () => {
       totalTransactions: 0,
       avgTicket: 0,
       uniqueUsers: 0,
+      trends: { salesTrend: 0, transactionsTrend: 0, usersTrend: 0 },
     };
   }
+
+  // Calcular fechas para comparación
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+  // Datos del mes actual
+  const currentData = data.filter(
+    (t) => new Date(t.timestamp) >= thirtyDaysAgo
+  );
+  const currentSales = currentData.reduce((sum, t) => sum + t.amount, 0);
+  const currentTransactions = currentData.length;
+  const currentUsers = new Set(currentData.map((t) => t.user_id)).size;
+
+  // Datos del mes anterior
+  const prevData = data.filter((t) => {
+    const d = new Date(t.timestamp);
+    return d >= sixtyDaysAgo && d < thirtyDaysAgo;
+  });
+  const prevSales = prevData.reduce((sum, t) => sum + t.amount, 0);
+  const prevTransactions = prevData.length;
+  const prevUsers = new Set(prevData.map((t) => t.user_id)).size;
+
+  // Calcular variaciones
+  const calcTrend = (current, previous) => {
+    if (!previous || previous === 0) return 0;
+    return Math.round(((current - previous) / previous) * 10000) / 100;
+  };
 
   const totalSales = data.reduce((sum, t) => sum + t.amount, 0);
   const totalTransactions = data.length;
@@ -144,21 +271,35 @@ export const getGeneralStats = async () => {
     totalTransactions,
     avgTicket: Math.round(avgTicket * 100) / 100,
     uniqueUsers,
+    trends: {
+      salesTrend: calcTrend(currentSales, prevSales),
+      transactionsTrend: calcTrend(currentTransactions, prevTransactions),
+      usersTrend: calcTrend(currentUsers, prevUsers),
+    },
   };
 };
 
 /**
  * Obtener ventas agrupadas por categoría
+ * @param {string} startDate - Fecha de inicio (YYYY-MM-DD) - ignorado si se usa period
+ * @param {string} period - Período: 'today', 'week', 'month'
  */
-export const getSalesByCategory = async (startDate = null) => {
+export const getSalesByCategory = async (startDate = null, period = null) => {
   // PRODUCCIÓN
   if (isProduction && bigQueryClient) {
     let dateFilter = "";
-    const params = {};
 
-    if (startDate) {
-      dateFilter = "WHERE timestamp >= @startDate";
-      params.startDate = startDate; // BigQuery uses TIMESTAMP or DATETIME
+    // Si hay period, usar filtro dinámico basado en MAX(timestamp)
+    if (period) {
+      let intervalDays = 1;
+      if (period === "today") intervalDays = 1;
+      else if (period === "week") intervalDays = 7;
+      else if (period === "month") intervalDays = 30;
+
+      dateFilter = `WHERE timestamp >= (
+        SELECT TIMESTAMP_SUB(MAX(timestamp), INTERVAL ${intervalDays} DAY)
+        FROM \`${bigQueryConfig.projectId}.${bigQueryConfig.dataset}.${bigQueryConfig.tables.salesTransactions}\`
+      )`;
     }
 
     const query = `
@@ -172,14 +313,33 @@ export const getSalesByCategory = async (startDate = null) => {
       GROUP BY category
       ORDER BY totalSales DESC
     `;
-    return await runQuery(query, params);
+    return normalizeRows(await runQuery(query));
   }
 
   // DESARROLLO
   let data = loadSalesData();
 
-  if (startDate) {
-    // startDate format YYYY-MM-DD
+  // Si hay period, calcular fecha basada en max timestamp del dataset
+  if (period && data.length > 0) {
+    const maxTimestamp = Math.max(
+      ...data.map((t) => new Date(t.timestamp).getTime())
+    );
+    const maxDate = new Date(maxTimestamp);
+
+    let filterDate;
+    if (period === "today") {
+      filterDate = new Date(maxDate);
+      filterDate.setHours(0, 0, 0, 0);
+    } else if (period === "week") {
+      filterDate = new Date(maxTimestamp - 7 * 24 * 60 * 60 * 1000);
+    } else if (period === "month") {
+      filterDate = new Date(maxTimestamp - 30 * 24 * 60 * 60 * 1000);
+    }
+
+    if (filterDate) {
+      data = data.filter((t) => new Date(t.timestamp) >= filterDate);
+    }
+  } else if (startDate) {
     const start = new Date(startDate);
     data = data.filter((t) => new Date(t.timestamp) >= start);
   }
@@ -219,7 +379,7 @@ export const getSalesByRegion = async () => {
       GROUP BY region
       ORDER BY totalSales DESC
     `;
-    return await runQuery(query);
+    return normalizeRows(await runQuery(query));
   }
 
   // DESARROLLO
@@ -259,7 +419,7 @@ export const getDailySales = async () => {
       GROUP BY date
       ORDER BY date
     `;
-    return await runQuery(query);
+    return normalizeRows(await runQuery(query));
   }
 
   // DESARROLLO
@@ -307,7 +467,7 @@ export const getForecastPrediction = async () => {
         ORDER BY forecast_timestamp
       `;
 
-      const predictions = await runQuery(query);
+      const predictions = normalizeRows(await runQuery(query));
       console.log("✅ [BigQuery Real] Predicciones recibidas correctamente");
 
       return {

@@ -8,7 +8,7 @@
       <!-- Header -->
       <header class="flex justify-between items-center mb-8 flex-wrap gap-4">
         <div>
-          <h1 class="text-3xl font-bold text-slate-800">Sales Report</h1>
+          <h1 class="text-3xl font-bold text-slate-800">Reporte de Ventas</h1>
           <p class="text-sm text-slate-500 mt-1">{{ currentDate }}</p>
         </div>
         <div class="flex items-center gap-4">
@@ -17,14 +17,14 @@
             :class="{ 'bg-green-100 text-green-600': store.isConnected }"
           >
             <div class="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></div>
-            {{ store.isConnected ? "Real-time Connected" : "Connecting..." }}
+            {{ store.isConnected ? "Conectado en tiempo real" : "Conectando..." }}
           </div>
           <button 
             class="flex items-center gap-1.5 px-5 py-2.5 bg-blue-500 text-white rounded-xl text-sm font-semibold hover:bg-blue-600 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30 transition-all group"
             @click="store.fetchAllData"
           >
             <RefreshCw :size="14" class="group-hover:animate-spin" />
-            Refresh
+            Actualizar
           </button>
         </div>
       </header>
@@ -35,41 +35,40 @@
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           <KpiCard
             :value="store.generalStats?.totalSales || 0"
-            label="Total Sales"
+            label="Ventas Totales"
             format="currency"
             color="primary"
             icon="dollar"
-            :trend="2.06"
-            badge="+2.06%"
+            :trend="store.generalStats?.trends?.salesTrend || 0"
             class="animate-[fadeUp_0.6s_ease-out_both]"
             style="animation-delay: 0ms"
           />
 
           <KpiCard
             :value="store.generalStats?.totalTransactions || 0"
-            label="Total Orders"
+            label="Órdenes Totales"
             format="number"
             color="purple"
             icon="cart"
-            :trend="12.4"
+            :trend="store.generalStats?.trends?.transactionsTrend || 0"
             class="animate-[fadeUp_0.6s_ease-out_both]"
             style="animation-delay: 100ms"
           />
 
           <KpiCard
             :value="store.generalStats?.uniqueUsers || 0"
-            label="Visitors"
+            label="Visitantes"
             format="number"
             color="warning"
             icon="ticket"
-            :trend="-2.06"
+            :trend="store.generalStats?.trends?.usersTrend || 0"
             class="animate-[fadeUp_0.6s_ease-out_both]"
             style="animation-delay: 200ms"
           />
 
           <KpiCard
             :value="store.realtimeStats.lastMinuteSales"
-            label="Last Minute Sales"
+            label="Ventas Último Minuto"
             format="currency"
             color="success"
             icon="zap"
@@ -83,8 +82,8 @@
         <div class="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-6">
           <div class="animate-[fadeUp_0.6s_ease-out_both]" style="animation-delay: 400ms">
             <SalesChart
-              title="Customer Habbits"
-              subtitle="Track your customer habits"
+              title="Tendencias de Clientes"
+              subtitle="Rastrea hábitos de clientes"
               :data="store.dailySales"
               :forecast-data="store.forecast?.forecast || []"
               :is-loading="store.isLoading"
@@ -94,7 +93,7 @@
             <CategoryChart
               :data="store.categoryStats"
               :is-loading="store.isLoading"
-              @filter-change="store.fetchCategoryStats"
+              @filter-change="(period) => store.fetchCategoryStats(period)"
             />
           </div>
         </div>
@@ -128,8 +127,8 @@
 
       <!-- Footer -->
       <footer class="text-center py-8 mt-8 text-xs text-gray-400">
-        E-Commerce Dashboard MVP • Vue 3 + Pinia + Socket.io •
-        <strong class="text-blue-500">BigQuery ML</strong> Powered
+        Panel E-Commerce MVP • Vue 3 + Pinia + Socket.io •
+        Impulsado por <strong class="text-blue-500">BigQuery ML</strong>
       </footer>
     </main>
   </div>
@@ -149,7 +148,7 @@ import { Wifi, WifiOff, RefreshCw } from "lucide-vue-next";
 const store = useSalesStore();
 
 const currentDate = computed(() => {
-  return new Date().toLocaleDateString("en-US", {
+  return new Date().toLocaleDateString("es-ES", {
     weekday: "long",
     year: "numeric",
     month: "long",
