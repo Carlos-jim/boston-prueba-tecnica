@@ -12,9 +12,13 @@
  * 2. Configurar credenciales de servicio
  * 3. Descomentar el código de producción
  */
+import path from "path";
+
 export const bigQueryConfig = {
   projectId: process.env.GCLOUD_PROJECT_ID,
-  keyFilename: process.env.GCLOUD_KEYFILE_PATH,
+  keyFilename: process.env.GCLOUD_KEYFILE_PATH
+    ? path.resolve(process.cwd(), process.env.GCLOUD_KEYFILE_PATH)
+    : undefined,
   location: "US",
   dataset: "ecommerce_analytics",
   tables: {

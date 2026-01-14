@@ -35,7 +35,10 @@ export const formatShortNumber = (num) => {
 };
 
 export const formatDay = (dateStr) => {
-  const date = new Date(dateStr);
+  // Asegurar que la fecha se interprete como local añadiendo T00:00:00 si es solo YYYY-MM-DD
+  // Esto evita que '2025-01-01' se interprete como UTC (que sería 31 Dic en América)
+  const safeDateStr = dateStr.includes("T") ? dateStr : `${dateStr}T00:00:00`;
+  const date = new Date(safeDateStr);
   return date.toLocaleDateString("es-ES", {
     weekday: "short",
     month: "short",

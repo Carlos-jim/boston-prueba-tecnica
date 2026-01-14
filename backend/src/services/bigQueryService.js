@@ -37,6 +37,8 @@ if (isProduction) {
       "❌ [BigQueryService] Error conectando a BigQuery:",
       error.message
     );
+    console.error("Path usado:", bigQueryConfig.keyFilename);
+    console.error("Stack:", error.stack);
   }
 }
 
@@ -559,6 +561,7 @@ export const getHistoricalWithForecast = async () => {
   }));
 
   return {
+    model: forecast.model,
     historical,
     forecast: forecastData,
     combined: [...historical, ...forecastData],

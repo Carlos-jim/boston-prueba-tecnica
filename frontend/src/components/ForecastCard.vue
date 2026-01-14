@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { Target, Clock } from "lucide-vue-next";
 
 import { formatNumber, formatShortNumber, formatDay, formatUpdateTime } from "../utils/formatters";
@@ -70,6 +70,11 @@ const props = defineProps({
   generatedAt: { type: String, default: "" },
   modelName: { type: String, default: "ARIMA_PLUS" },
 });
+
+// Debug log for user
+watch(() => props.predictions, (newVal) => {
+  console.log("📊 [ForecastCard] Datos recibidos:", newVal);
+}, { immediate: true });
 
 const isSimulated = computed(() => props.modelName.includes("simulated"));
 
